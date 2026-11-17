@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>溪桥鲜 · 数字田园导览 V2.2</title>
+<title>溪桥鲜 · 数字田园导览 V2.3</title>
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.18.0/dist/maplibre-gl.css">
 <style>
 :root{
@@ -103,7 +103,7 @@ footer{padding:18px 3px 30px;color:#7d8779;font-size:11px;line-height:1.7}
 @media(max-width:960px){.layout{grid-template-columns:1fr}#map{height:66vh;min-height:480px}.panel{order:2}.map-overlays{width:min(355px,calc(100% - 80px));max-height:calc(100% - 22px)}}
 @media(max-width:560px){.wrap{padding:0 9px;margin:13px auto}header{padding:15px}.brand{font-size:23px}.map-head{align-items:flex-start}#map{height:63vh;min-height:450px}.panel{padding:14px}.zone-list{grid-template-columns:1fr 1fr}.map-overlays{left:48px;width:calc(100% - 58px);top:8px}.layer-body{max-height:38vh}.plan-cell{min-height:34px;padding:4px 2px}.study-grid{grid-template-columns:repeat(4,1fr)}}
 
-/* V2.2: map-native planning overlays */
+/* V2.3: map-native planning overlays */
 .zone-label{font-family:"Noto Sans SC","Microsoft YaHei",sans-serif;font-weight:800;font-size:12px;letter-spacing:.2px}
 .maplibregl-popup-content{min-width:170px}
 </style>
@@ -116,12 +116,12 @@ footer{padding:18px 3px 30px;color:#7d8779;font-size:11px;line-height:1.7}
 <main class="wrap">
  <div class="headline">
   <div><h1>真实影像 · 数字田园导览</h1><div class="sub">规划红线、五区色块、游客动线与七事节点直接叠加在真实地图上。</div></div>
-  <div class="tag">● 真实底图叠加版 V2.2</div>
+  <div class="tag">● 真实底图叠加版 V2.3</div>
  </div>
  <div class="layout">
   <section class="map-card">
    <div class="map-head">
-    <div><strong>新溪桥村项目区 · 位置参考（V2.2 校正）</strong><br><span>滚轮 / 双指缩放，按住地图拖动；分区、路线与节点直接叠加在底图上</span></div>
+    <div><strong>新溪桥村项目区 · 位置参考（V2.3 校正）</strong><br><span>滚轮 / 双指缩放，按住地图拖动；分区、路线与节点直接叠加在底图上</span></div>
     <div class="map-tools">
      <button class="tool active" id="satBtn">卫星影像</button>
      <button class="tool" id="roadBtn">道路地图</button>
@@ -296,7 +296,8 @@ const studies=[
 ];
 
 
-// 规划范围（V2.2）：E1 保持北侧轮作带不变；南侧最下方新增一条长条地带作为 E2（现状水塘/生态水带）。
+// 规划范围（V2.3）：分区同 V2.3；人下乡与菜进城路线改为沿地块之间的机耕道/田埂走，
+// 不穿越 A1/A2/A3 生产地块。
 const ORIGIN={lon:119.672725,lat:30.238990};
 const M_PER_DEG_LON=111320*Math.cos(ORIGIN.lat*Math.PI/180),M_PER_DEG_LAT=110574;
 // x：项目区原点以东的米数；y：原点以南的米数
@@ -321,19 +322,19 @@ const boundaryGeoJSON={type:'Feature',properties:{name:'项目规划红线'},geo
   xy(-248.4,-223.3)
 ]]}};
 const peopleGeoJSON={type:'Feature',properties:{name:'人下乡体验路线'},geometry:{type:'LineString',coordinates:[
-  xy(-332,-220),xy(-329,-216),xy(-254,-139),xy(-182,33),xy(-121,7),xy(-25,40),xy(90,51),xy(254,103),xy(-16,215),xy(-54,159),xy(234,317),xy(273,284)
+  xy(-308.5,-26.4),xy(-283.3,-81.1),xy(-273.8,-109.6),xy(-261.5,-114.7),xy(-175.0,-135.6),xy(84.9,-46.2),xy(225.7,42.5),xy(200.1,117.0),xy(184.4,162.4),xy(146.3,149.3),xy(259.8,188.3),xy(297.9,169.7),xy(351.2,153.2),xy(367.7,127.2)
 ]}};
 const goodsGeoJSON={type:'Feature',properties:{name:'菜进城物流流线'},geometry:{type:'LineString',coordinates:[
-  xy(-112,137),xy(-16,148),xy(80,159),xy(244,284)
+  xy(-180.0,177.9),xy(158.1,294.3),xy(241.0,322.8),xy(294.1,168.4),xy(349.6,157.9)
 ]}};
 const studyPoints=[
- {n:1,title:'过桥',zone:'D',x:-332,y:-220,desc:'古桥打卡，认识溪桥鲜与吴越农桑文化。'},
- {n:2,title:'闻香',zone:'B',x:-329,y:-214,desc:'辨识香草与作物气味，打开感官体验。'},
- {n:3,title:'摸土',zone:'B',x:-254,y:-139,desc:'观察土壤质地，认识作物生长环境。'},
- {n:4,title:'种菜',zone:'B',x:-182,y:33,desc:'播种、插牌，体验认养与农事劳动。'},
- {n:5,title:'看窗',zone:'A2',x:254,y:136,desc:'观察设施农业；夏季A1观察窗关闭时转至A2温室。'},
- {n:6,title:'收菜',zone:'A3',x:-74,y:159,desc:'采摘、称重与包装；具体开放地块以现场安排为准。'},
- {n:7,title:'带走',zone:'C',x:273,y:284,desc:'品牌零售、CSA自提、扫码溯源与集章离园。'}
+ {n:1,title:'过桥',zone:'D',x:-308.5,y:-26.4,desc:'古桥打卡，认识溪桥鲜与吴越农桑文化。'},
+ {n:2,title:'闻香',zone:'B',x:-283.3,y:-81.1,desc:'辨识香草与作物气味，打开感官体验。'},
+ {n:3,title:'摸土',zone:'B',x:-273.8,y:-109.6,desc:'观察土壤质地，认识作物生长环境。'},
+ {n:4,title:'种菜',zone:'B',x:-261.5,y:-114.7,desc:'播种、插牌，体验认养与农事劳动。'},
+ {n:5,title:'看窗',zone:'A2',x:225.7,y:42.5,desc:'沿机耕道观察设施农业；夏季A1观察窗关闭时转至A2温室。'},
+ {n:6,title:'收菜',zone:'A3',x:146.3,y:149.3,desc:'沿田埂路观察订单种植区，采摘、称重与包装。'},
+ {n:7,title:'带走',zone:'C',x:351.2,y:153.2,desc:'品牌零售、CSA自提、扫码溯源与集章离园。'}
 ];;
 const studyGeoJSON={type:'FeatureCollection',features:studyPoints.map(p=>({
  type:'Feature',properties:{n:p.n,title:p.title,zone:p.zone,desc:p.desc},
@@ -408,7 +409,7 @@ function highlightZoneOnMap(id){
  map.setPaintProperty('plan-zone-outline','line-width',['case',['==',['get','id'],id],4,1.8]);
  const z=zones.find(x=>x.id===id);
  if(z){
-  const centerMap={E1:[119.673970,30.238717],A1:[119.673970,30.238717],A2:[119.673970,30.238717],B:[119.673970,30.238717],A3:[119.673970,30.238717],C:[119.673970,30.238717],E2:[119.673970,30.238717]};
+  const centerMap={E1:[119.673044,30.239925],A1:[119.672463,30.238630],A2:[119.675370,30.237760],B:[119.670082,30.240243],A3:[119.672161,30.237548],C:[119.675562,30.236421],E2:[119.672407,30.236837]};
   map.flyTo({center:centerMap[id]||initialCenter,zoom:16.9,duration:650});
  }
 }
@@ -515,7 +516,7 @@ function renderRight(){
     ${detailCard('人下乡','古桥入口 → D区文化廊道 → B区体验 → A区开放体验 → C区服务','游客体验动线与生产货运动线分开组织。')}
     ${detailCard('品牌主张','鲜 · 信 · 桥','新鲜供应、品质溯源、吴越农桑的当代连接。')}
    </div>
-   <div class="notice">地图中的红色边界、分区色块、游客路线、物流流线和七事节点均直接叠加在底图上；点击地图对象或右侧栏目即可联动。V2.2 已按你最新提供的红线图重绘范围。</div>`;
+   <div class="notice">地图中的红色边界、分区色块、游客路线、物流流线和七事节点均直接叠加在底图上；点击地图对象或右侧栏目即可联动。V2.3 已按你最新提供的红线图重绘范围。</div>`;
  } else if(activeTab==='zones'){
   const z=zones.find(x=>x.id===selectedZone)||zones[0];
   contentEl.innerHTML=`<div class="eyebrow">FIVE ZONES</div><h2>五区空间导览</h2><p>点击分区，地图直接定位并高亮对应色块。A区可展开查看A1、A2、A3；E区可查看轮作区和现状水塘。</p>
