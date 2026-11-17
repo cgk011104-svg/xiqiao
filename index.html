@@ -1,0 +1,568 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>溪桥鲜 · 数字田园导览 V2.2</title>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.18.0/dist/maplibre-gl.css">
+<style>
+:root{
+ --pine:#234b35;--pine2:#315c41;--leaf:#718d58;--gold:#cb8439;
+ --cream:#f7f5ec;--ink:#27382d;--muted:#6e786d;--line:#dfe3d4;
+ --blue:#6d9caf;--purple:#887495;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#f2f2e9;color:var(--ink);font-family:"Noto Sans SC","Microsoft YaHei",system-ui,sans-serif}
+header{background:linear-gradient(110deg,#203f2e,#42694a);color:#fff;padding:17px clamp(16px,4vw,52px);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{font-size:27px;font-weight:800;letter-spacing:2px}.brand small{display:block;font-size:11px;font-weight:500;letter-spacing:2.5px;opacity:.78;margin-top:4px}
+.header-note{font-size:13px;opacity:.88}
+.wrap{max-width:1580px;margin:22px auto;padding:0 18px}
+.headline{display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap;margin-bottom:14px}
+h1{font-size:clamp(23px,3vw,34px);margin:0;color:var(--pine);letter-spacing:1px}
+.sub{font-size:13px;color:var(--muted);margin-top:7px}
+.tag{display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:99px;background:#e7eddf;color:var(--pine);font-size:12px;border:1px solid #d2ddca}
+.layout{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(320px,.78fr);gap:17px;align-items:start}
+.map-card,.panel{background:white;border:1px solid var(--line);border-radius:17px;overflow:hidden;box-shadow:0 8px 26px #30432b12}
+.map-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 15px;border-bottom:1px solid #edf0e7}
+.map-head strong{font-size:14px;color:var(--pine)}.map-head span{font-size:11px;color:var(--muted)}
+.map-tools{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+button{font-family:inherit;cursor:pointer}
+.tool{border:1px solid #d9e0d2;background:#fbfcf7;color:var(--pine);border-radius:8px;padding:7px 10px;font-size:12px}
+.tool.primary{background:var(--pine);border-color:var(--pine);color:white}
+.tool.active{background:#e8efe3;border-color:#9db593;color:var(--pine);font-weight:700}
+#map{height:700px;width:100%;background:#e9eee1;position:relative}
+.map-foot{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 14px;color:#718070;font-size:11px;border-top:1px solid #edf0e7}
+.panel{padding:18px}
+.eyebrow{font-size:10px;font-weight:800;letter-spacing:2px;color:#9b7947}
+.panel h2{font-size:23px;color:var(--pine);margin:8px 0 5px}
+.area{font-size:12px;color:#9a713c;font-weight:700}
+.panel p{font-size:13px;line-height:1.75;color:#586457;margin:13px 0}
+.detail-list{display:grid;gap:8px;margin-top:13px}
+.detail{background:#f5f7f1;border-radius:9px;padding:10px 11px}
+.detail b{display:block;font-size:12px;color:var(--pine);margin-bottom:4px}
+.detail span{font-size:12px;color:#697468;line-height:1.55}
+.tabs{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 12px}
+.tab{border:1px solid #d7dfd0;background:#fff;color:var(--pine);border-radius:99px;padding:7px 11px;font-size:12px}
+.tab.active{background:var(--pine);color:#fff;border-color:var(--pine)}
+.zone-list{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:12px}
+.zone-btn,.step-btn{text-align:left;border:1px solid #e1e6db;background:#fbfcf8;border-radius:9px;padding:9px 10px}
+.zone-btn b{display:block;font-size:12px;color:var(--pine)}
+.zone-btn small{display:block;color:var(--muted);font-size:10px;margin-top:3px}
+.zone-btn.active,.step-btn.active{border-color:#cb8439;background:#fff7ea;box-shadow:0 0 0 1px #e9c38f inset}
+.notice{background:#fff8e9;border:1px solid #f0dfbd;border-radius:9px;padding:10px 11px;font-size:11px;color:#80683f;line-height:1.65;margin-top:13px}
+.route-steps{display:grid;gap:7px;margin-top:12px}
+.step-btn{display:flex;gap:9px;align-items:flex-start;padding:8px 9px;width:100%}
+.num{flex:0 0 24px;height:24px;border-radius:50%;background:var(--gold);color:#fff;text-align:center;line-height:24px;font-size:11px;font-weight:800}
+.step-btn b{display:block;font-size:12px;color:var(--pine)}
+.step-btn small{font-size:11px;color:var(--muted);line-height:1.5}
+footer{padding:18px 3px 30px;color:#7d8779;font-size:11px;line-height:1.7}
+.maplibregl-ctrl-attrib{font-size:9px!important}
+.maplibregl-popup-content{font-family:inherit;border-radius:10px;padding:12px 14px;font-size:12px;line-height:1.65}
+.map-marker{width:20px;height:20px;border-radius:50%;background:#d17e32;border:3px solid white;box-shadow:0 1px 9px #0007;cursor:pointer}
+.map-overlays{display:none!important;position:absolute;z-index:5;top:12px;left:54px;width:min(365px,calc(100% - 105px));max-height:calc(100% - 24px);display:flex;flex-direction:column;pointer-events:none}
+.layer-panel{pointer-events:auto;background:#fffdf4f4;border:1px solid #dce2d2;border-radius:13px;box-shadow:0 5px 18px #203a2928;backdrop-filter:blur(5px);overflow:hidden}
+.layer-header{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:10px 12px;border-bottom:1px solid #ece9dc}
+.layer-header strong{font-size:12px;color:var(--pine)}
+.layer-header small{font-size:9px;color:#8b7652}
+.collapse-btn{border:0;background:transparent;color:#677366;font-size:16px;padding:0 3px}
+.layer-body{padding:10px 11px;max-height:min(52vh,480px);overflow:auto}
+.layer-switches{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:9px}
+.layer-toggle{display:flex;align-items:center;gap:5px;background:#f6f7f1;border:1px solid #e2e6dc;border-radius:7px;padding:6px 7px;font-size:10px;color:#566556}
+.layer-toggle input{accent-color:var(--pine);margin:0}
+.layer-section{border-top:1px solid #e8eadf;padding-top:8px;margin-top:8px}
+.layer-section:first-of-type{border-top:0;padding-top:0;margin-top:0}
+.layer-section h4{font-size:10px;color:#8a794f;letter-spacing:.5px;margin:0 0 6px}
+.plan-grid{display:grid;grid-template-columns:.7fr 1fr 1fr 1fr 1fr;gap:4px;text-align:center}
+.plan-cell{border:1px solid #dbe2d2;border-radius:6px;padding:6px 3px;background:#eef3e8;color:var(--pine);line-height:1.3;min-height:38px;display:flex;flex-direction:column;justify-content:center;align-items:center;cursor:pointer}
+.plan-cell strong{font-size:9px}.plan-cell small{font-size:8px;color:#687465}
+.plan-cell.wide{grid-column:1/6}
+.plan-cell.d{grid-column:1;grid-row:2/4;background:#f0eaf3;border-color:#d8c9df}
+.plan-cell.b{grid-column:2;grid-row:2/4;background:#fff1d9;border-color:#efd3a7}
+.plan-cell.a1{grid-column:3/5;grid-row:2;background:#eaf1e2}
+.plan-cell.a2{grid-column:5;grid-row:2;background:#e3eee4}
+.plan-cell.a3{grid-column:3/5;grid-row:3;background:#eaf1e2}
+.plan-cell.c{grid-column:5;grid-row:3;background:#f8e8d8;border-color:#e8c7a4}
+.plan-cell.e2{grid-column:1/6;background:#e5f1f3;border-color:#c1dce2}
+.plan-cell.active{outline:2px solid var(--gold);background:#ffdfaa;color:#47321a}
+.plan-caption{font-size:9px;color:#8a7a5f;line-height:1.45;margin-top:6px}
+.flow-list{display:grid;gap:5px}
+.flow-item{display:flex;align-items:center;gap:7px;border:1px solid #e3e7dc;border-radius:8px;background:#f6f8f1;padding:6px 7px;font-size:10px;color:#425442;cursor:pointer}
+.flow-item.active{background:#fff0d9;border-color:#d89a50;outline:1px solid #d89a50}
+.flow-n{height:19px;width:19px;flex:0 0 19px;border-radius:50%;background:var(--gold);color:white;text-align:center;line-height:19px;font-weight:800;font-size:9px}
+.flow-arrow{text-align:center;color:#bd8b48;font-size:12px;line-height:7px}
+.study-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.study-item{border:1px solid #e1e6db;background:#f6f8f1;border-radius:7px;padding:7px 3px;text-align:center;cursor:pointer}
+.study-item strong{display:block;color:var(--pine);font-size:10px}
+.study-item small{display:block;color:var(--muted);font-size:8px;margin-top:3px}
+.study-item.active{background:#fff0d9;border-color:#d89a50;outline:1px solid #d89a50}
+.layer-empty{font-size:10px;color:#899183;line-height:1.5;padding:10px 4px}
+.legend-note{font-size:9px;color:#8a7a5f;margin-top:8px;line-height:1.45}
+.overlay-reopen{display:none!important;position:absolute;z-index:6;top:12px;left:54px;pointer-events:auto}
+.overlay-reopen button{border:1px solid #dce2d2;background:#fffdf4ed;color:var(--pine);border-radius:9px;padding:8px 10px;font-size:11px;box-shadow:0 3px 12px #203a2928}
+.layer-section[hidden]{display:none}
+@media(max-width:960px){.layout{grid-template-columns:1fr}#map{height:66vh;min-height:480px}.panel{order:2}.map-overlays{width:min(355px,calc(100% - 80px));max-height:calc(100% - 22px)}}
+@media(max-width:560px){.wrap{padding:0 9px;margin:13px auto}header{padding:15px}.brand{font-size:23px}.map-head{align-items:flex-start}#map{height:63vh;min-height:450px}.panel{padding:14px}.zone-list{grid-template-columns:1fr 1fr}.map-overlays{left:48px;width:calc(100% - 58px);top:8px}.layer-body{max-height:38vh}.plan-cell{min-height:34px;padding:4px 2px}.study-grid{grid-template-columns:repeat(4,1fr)}}
+
+/* V2.2: map-native planning overlays */
+.zone-label{font-family:"Noto Sans SC","Microsoft YaHei",sans-serif;font-weight:800;font-size:12px;letter-spacing:.2px}
+.maplibregl-popup-content{min-width:170px}
+</style>
+</head>
+<body>
+<header>
+ <div class="brand">溪桥鲜<small>XIQIAO FRESH · DIGITAL FARM GUIDE</small></div>
+ <div class="header-note">一桥串五区 · 七事连城乡　|　临安主城区15分钟都市菜园</div>
+</header>
+<main class="wrap">
+ <div class="headline">
+  <div><h1>真实影像 · 数字田园导览</h1><div class="sub">规划红线、五区色块、游客动线与七事节点直接叠加在真实地图上。</div></div>
+  <div class="tag">● 真实底图叠加版 V2.2</div>
+ </div>
+ <div class="layout">
+  <section class="map-card">
+   <div class="map-head">
+    <div><strong>新溪桥村项目区 · 位置参考（V2.2 校正）</strong><br><span>滚轮 / 双指缩放，按住地图拖动；分区、路线与节点直接叠加在底图上</span></div>
+    <div class="map-tools">
+     <button class="tool active" id="satBtn">卫星影像</button>
+     <button class="tool" id="roadBtn">道路地图</button>
+     <button class="tool" id="homeBtn">回到项目位置</button>
+     <button class="tool" id="coordBtn">点击地图取坐标</button>
+    </div>
+   </div>
+   <div id="map" aria-label="新溪桥村在线地图">
+    <div class="map-overlays" id="mapOverlays">
+     <div class="layer-panel">
+      <div class="layer-header">
+       <div><strong>地图专题图层</strong><br><small>相对方位示意 · 非地理配准边界</small></div>
+       <button class="collapse-btn" id="collapseLayers" title="收起图层面板">−</button>
+      </div>
+      <div class="layer-body">
+       <div class="layer-switches">
+        <label class="layer-toggle"><input type="checkbox" data-layer="zones" checked>项目分区</label>
+        <label class="layer-toggle"><input type="checkbox" data-layer="people">人下乡路线</label>
+        <label class="layer-toggle"><input type="checkbox" data-layer="goods">菜进城流线</label>
+        <label class="layer-toggle"><input type="checkbox" data-layer="study">过桥七事</label>
+       </div>
+       <div id="layerContent"></div>
+       <div class="legend-note">点击本示意中的分区或节点，右侧信息栏会同步切换；点击右侧信息，左侧也会同步高亮。所有布局为方位关系示意，未按比例绘制。</div>
+      </div>
+     </div>
+    </div>
+    <div class="overlay-reopen" id="reopenLayers"><button>＋ 打开地图专题图层</button></div>
+   </div>
+   <div class="map-foot"><span id="mapStatus">正在加载卫星影像……</span><span>规划边界及分区：依据上位规划红线与项目规划方位近似绘制</span></div>
+  </section>
+  <aside class="panel">
+   <div class="tabs">
+    <button class="tab active" data-tab="intro">项目导览</button>
+    <button class="tab" data-tab="zones">五区信息</button>
+    <button class="tab" data-tab="people">人下乡</button>
+    <button class="tab" data-tab="goods">菜进城</button>
+    <button class="tab" data-tab="study">过桥七事</button>
+   </div>
+   <div id="content"></div>
+  </aside>
+ </div>
+ <footer>
+  溪桥鲜 · 新溪桥村数字蔬菜产业基地<br>
+  道路底图：OpenFreeMap © OpenMapTiles，数据来自 © OpenStreetMap contributors；卫星影像：Sources: Esri, Maxar, Earthstar Geographics, and the GIS User Community。<br>
+  说明：卫星影像和道路底图为在线真实底图；规划红线与各分区为展示性近似落位，不代表精确地块边界或实际导航路线。本版红线沿用你标定的 6 点；E 区改为南侧最下方长条地带（轮作带），E2 水塘在其中，其余分区按 19° 行列方向切分并铺满红线。
+ </footer>
+</main>
+
+<script type="module">
+import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.18.0/dist/maplibre-gl.mjs';
+
+const initialCenter=[119.672725,30.238990], initialZoom=16.0;
+const ROAD_STYLE='https://tiles.openfreemap.org/styles/liberty';
+const SAT_STYLE={
+ version:8,
+ glyphs:'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf',
+ sources:{
+  esriImagery:{
+   type:'raster',
+   tiles:['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+   tileSize:256,
+   attribution:'Sources: Esri, Maxar, Earthstar Geographics, and the GIS User Community'
+  }
+ },
+ layers:[{id:'esri-imagery',type:'raster',source:'esriImagery'}]
+};
+
+const mapStatus=document.getElementById('mapStatus');
+const content=document.getElementById('content');
+const map=new maplibregl.Map({
+ container:'map',
+ style:SAT_STYLE,
+ center:initialCenter,
+ zoom:initialZoom,
+ attributionControl:{compact:false},
+ maxZoom:20
+});
+map.addControl(new maplibregl.NavigationControl({showCompass:true,showZoom:true,visualizePitch:false}),'top-right');
+map.addControl(new maplibregl.ScaleControl({maxWidth:110,unit:'metric'}),'bottom-left');
+
+let currentBasemap='satellite', pickMode=false, mapReady=false, errorCount=0;
+map.on('style.load',()=>{addPlanningLayers();});
+map.on('load',()=>{
+ mapReady=true;
+ mapStatus.textContent='卫星影像已连接；规划红线、分区色块与专题路线已叠加。';
+ const el=document.createElement('div'); el.className='map-marker';
+ const marker=new maplibregl.Marker({element:el,anchor:'center'})
+   .setLngLat(initialCenter)
+   .setPopup(new maplibregl.Popup({offset:13}).setHTML('<b>项目区初始定位参考点</b><br>约 30.23899°N, 119.67273°E<br><small>项目区范围示意中心，非红线或分区精确坐标</small>'))
+   .addTo(map);
+ marker.togglePopup();
+});
+map.on('error',(e)=>{
+ errorCount++;
+ const msg=(e && e.error && e.error.message)?e.error.message:'地图资源加载异常';
+ if(errorCount<3) mapStatus.textContent='地图资源加载中……';
+ else mapStatus.textContent='地图资源连接异常：'+msg+'。可切换底图或刷新重试。';
+});
+map.on('idle',()=>{
+ if(mapReady && errorCount===0 && currentBasemap==='satellite')
+  mapStatus.textContent='卫星影像已加载。规划边界、分区、路线与研学节点可直接点击。';
+});
+function setBasemap(which){
+ currentBasemap=which;
+ document.getElementById('satBtn').classList.toggle('active',which==='satellite');
+ document.getElementById('roadBtn').classList.toggle('active',which==='roads');
+ errorCount=0;
+ map.setStyle(which==='satellite'?SAT_STYLE:ROAD_STYLE);
+ mapStatus.textContent=which==='satellite'?'正在加载 Esri 卫星影像……':'正在加载 OpenFreeMap 道路地图……';
+}
+document.getElementById('satBtn').onclick=()=>setBasemap('satellite');
+document.getElementById('roadBtn').onclick=()=>setBasemap('roads');
+document.getElementById('homeBtn').onclick=()=>map.flyTo({center:initialCenter,zoom:initialZoom,duration:900});
+document.getElementById('coordBtn').onclick=()=>{
+ pickMode=!pickMode;
+ document.getElementById('coordBtn').classList.toggle('primary',pickMode);
+ mapStatus.textContent=pickMode?'坐标拾取已开启：点击地图任意位置读取经纬度。':'坐标拾取已关闭。';
+};
+map.on('click',(e)=>{
+ if(!pickMode)return;
+ const lat=e.lngLat.lat.toFixed(6),lon=e.lngLat.lng.toFixed(6);
+ const html=`<div><b>地图点击位置</b><br>纬度：${lat}<br>经度：${lon}<br><button id="copyCoord" style="margin-top:7px;padding:5px 8px;border:0;border-radius:6px;background:#234b35;color:white">复制坐标</button></div>`;
+ const popup=new maplibregl.Popup({closeButton:true,closeOnClick:true}).setLngLat(e.lngLat).setHTML(html).addTo(map);
+ popup.on('open',()=>{
+  const btn=document.getElementById('copyCoord');
+  if(btn)btn.onclick=async()=>{
+   try{await navigator.clipboard.writeText(`${lat}, ${lon}`);mapStatus.textContent=`已复制坐标 ${lat}, ${lon}`;}
+   catch{mapStatus.textContent=`坐标：${lat}, ${lon}（浏览器未允许自动复制）`;}
+  };
+ });
+ mapStatus.textContent=`已读取坐标：${lat}, ${lon}。可复制后用于红线校准。`;
+});
+
+const zones=[
+ {id:'A1',group:'A',name:'数字设施蔬菜核心区',area:'约82亩',pos:'基地北侧偏西',desc:'以数字设施蔬菜生产为核心，承担标准化种植、智能联栋大棚与生产示范功能。',role:'智慧设施蔬菜生产与生产示范'},
+ {id:'A2',group:'A',name:'玻璃温室',area:'约24亩',pos:'基地北侧偏东',desc:'与A1并列布置于基地北侧，可承担科研育苗、新品种展示及适宜季节的温室参观。夏季A1观察窗关闭时转至A2。',role:'科研育苗与温室展示'},
+ {id:'A3',group:'A',name:'订单规模种植区',area:'约72亩',pos:'基地南侧',desc:'位于基地南侧，是稳定供给的重要生产空间，东侧连接C区产销服务区。',role:'订单农业与规模化种植'},
+ {id:'B',group:'B',name:'共享体验区',area:'约12亩',pos:'基地西侧，靠近村庄与古道入口',desc:'面向市民、家庭与研学团队组织共享菜园、农耕体验田、户外课堂和采摘体验。',role:'认养菜园、农耕体验、四季课程与新品种展示'},
+ {id:'C',group:'C',name:'配套服务区',area:'约8亩',pos:'72亩订单种植区东侧，基地东南部',desc:'位于南侧72亩订单种植区东侧，靠近物流出口；夏季广场活动转入室内。',role:'预冷分拣、品牌零售、CSA自提与农服调度'},
+ {id:'D',group:'D',name:'溪桥文化廊道',area:'约0.3亩',pos:'古桥至B区的连接廊道',desc:'利用村庄现有道路和田埂，从古桥连接B区，以桥文化和农谚石板形成进入菜园的仪式感。',role:'古桥入口、农谚石板与文化导视'},
+ {id:'E1',group:'E',name:'水稻油菜轮作区',area:'约22亩',pos:'基地北侧，位于A1/A2以北',desc:'水稻与油菜季节轮作，作为基地生态景观的一部分。',role:'季节轮作与农业景观'},
+ {id:'E2',group:'E',name:'现状水塘',area:'约4亩',pos:'基地南缘，保持现状位置',desc:'现状水塘按约4亩口径标注，保留原有位置，不擅自迁移。',role:'生态景观与适度休闲'}
+];
+const zoneGroups=[
+ {id:'A',name:'智慧生产区',area:'约178亩',desc:'A1数字设施蔬菜核心区、A2玻璃温室、A3订单规模种植区，共同构成基地生产底盘。',children:['A1','A2','A3']},
+ {id:'B',name:'共享体验区',area:'约12亩',desc:'认养菜园、农耕体验、四季课程与新品种展示，是城乡情感连接和体验转化空间。',children:['B']},
+ {id:'C',name:'产销服务区',area:'约8亩',desc:'承担预冷分拣、品牌零售、CSA自提和农服调度功能，是生产与消费的转化枢纽。',children:['C']},
+ {id:'D',name:'溪桥文化廊道',area:'约0.3亩',desc:'利用古桥至B区的既有道路和田埂，以农谚石板与导视串联文化入口和体验空间。',children:['D']},
+ {id:'E',name:'生态景观带',area:'22亩轮作地 + 约4亩水塘',desc:'包含北侧水稻油菜轮作区和南缘现状水塘，保留生态本底。',children:['E1','E2']}
+];
+const peopleSteps=[
+ {id:'P1',title:'古桥入口',zone:'D',desc:'从新溪桥古桥及村庄方向进入，完成打卡与集合。'},
+ {id:'P2',title:'文化廊道',zone:'D',desc:'沿D区溪桥文化廊道步行，阅读农谚石板和文化导视。'},
+ {id:'P3',title:'共享体验',zone:'B',desc:'进入B区开展认养、农耕体验和课程活动。'},
+ {id:'P4',title:'开放参观',zone:'A2',desc:'按开放安排参观A区生产展示点；夏季A1观察窗关闭时改至A2温室。'},
+ {id:'P5',title:'服务离园',zone:'C',desc:'到C区完成零售、CSA自提、扫码溯源及离园服务。'}
+];
+const goodsSteps=[
+ {id:'G1',title:'基地生产',zone:'A3',desc:'A区智慧生产与订单种植，形成稳定农产品供给。'},
+ {id:'G2',title:'预冷分拣',zone:'C',desc:'产品进入C区，完成预冷、分拣、包装和调度。'},
+ {id:'G3',title:'销售渠道',zone:'C',desc:'通过批发市场、CSA订阅与品牌零售等渠道组织销售。'},
+ {id:'G4',title:'城市消费',zone:'CITY',desc:'面向临安主城区家庭、居民与企业客户。'}
+];
+const studies=[
+ {n:1,title:'过桥',zone:'D',desc:'古桥打卡，认识溪桥鲜与吴越农桑文化。'},
+ {n:2,title:'闻香',zone:'B',desc:'辨识香草与作物气味，打开感官体验。'},
+ {n:3,title:'摸土',zone:'B',desc:'观察土壤质地，认识作物生长环境。'},
+ {n:4,title:'种菜',zone:'B',desc:'播种、插牌，体验认养与农事劳动。'},
+ {n:5,title:'看窗',zone:'A2',desc:'观察设施农业；夏季A1观察窗关闭时转至A2温室。'},
+ {n:6,title:'收菜',zone:'A3',desc:'采摘、称重与包装；具体开放地块以现场安排为准。'},
+ {n:7,title:'带走',zone:'C',desc:'品牌零售、CSA自提、扫码溯源与集章离园。'}
+];
+
+
+// 规划范围（V2.2）：E1 保持北侧轮作带不变；南侧最下方新增一条长条地带作为 E2（现状水塘/生态水带）。
+const ORIGIN={lon:119.672725,lat:30.238990};
+const M_PER_DEG_LON=111320*Math.cos(ORIGIN.lat*Math.PI/180),M_PER_DEG_LAT=110574;
+// x：项目区原点以东的米数；y：原点以南的米数
+function xy(x,y){
+ return [ORIGIN.lon+x/M_PER_DEG_LON,ORIGIN.lat-y/M_PER_DEG_LAT];
+}
+function zoneFeature(id,name,area,color,rings){
+ const polys=rings.map(r=>{const ring=r.map(p=>xy(p[0],p[1])); ring.push(ring[0]); return [ring];});
+ return {type:'Feature',properties:{id,name,area,color},geometry:{type:'MultiPolygon',coordinates:polys}};
+}
+const zoneGeoJSON={type:'FeatureCollection',features:[
+ zoneFeature('E1','E1 水稻油菜轮作区','约22亩','#d8b84d',[[[-179.8,-213.8],[-147.3,-209.3],[-147.3,-209.3],[-147.3,-209.3],[137.2,-96.9],[326.7,18.4],[326.7,18.4],[322.7,78.7],[-216.5,-107.1]]]),
+ zoneFeature('A1','A1 数字设施蔬菜核心区','约82亩','#5e9b68',[[[-216.5,-107.1],[216.1,42.0],[166.3,186.8],[-266.4,37.9]]]),
+ zoneFeature('A2','A2 玻璃温室','约24亩','#3e7f9b',[[[216.1,42.0],[322.7,78.7],[312.2,237.1],[166.3,186.8]]]),
+ zoneFeature('B','B 共享体验区','约12亩','#df963e',[[[-248.4,-223.3],[-248.3,-223.3],[-248.4,-223.3],[-179.8,-213.8],[-266.4,37.9],[-333.8,14.7]]]),
+ zoneFeature('A3','A3 订单规模种植区','约72亩','#82a95d',[[[-358.2,82.5],[-333.8,14.7],[255.5,217.6],[219.1,323.2]]]),
+ zoneFeature('C','C 配套服务区','约8亩','#c77d45',[[[219.1,323.2],[255.5,217.6],[312.2,237.1],[304.2,358.7]]]),
+ zoneFeature('E2','E2 现状水塘 / 生态水带','约4亩水塘','#65a9bd',[[[304.2,358.7],[301.8,395.6],[-370.0,115.5],[-358.2,82.5]]])
+]};
+const boundaryGeoJSON={type:'Feature',properties:{name:'项目规划红线'},geometry:{type:'Polygon',coordinates:[[
+  xy(-248.4,-223.3),xy(-147.3,-209.3),xy(137.2,-96.9),xy(326.7,18.4),xy(301.8,395.6),xy(-370.0,115.5),
+  xy(-248.4,-223.3)
+]]}};
+const peopleGeoJSON={type:'Feature',properties:{name:'人下乡体验路线'},geometry:{type:'LineString',coordinates:[
+  xy(-332,-220),xy(-329,-216),xy(-254,-139),xy(-182,33),xy(-121,7),xy(-25,40),xy(90,51),xy(254,103),xy(-16,215),xy(-54,159),xy(234,317),xy(273,284)
+]}};
+const goodsGeoJSON={type:'Feature',properties:{name:'菜进城物流流线'},geometry:{type:'LineString',coordinates:[
+  xy(-112,137),xy(-16,148),xy(80,159),xy(244,284)
+]}};
+const studyPoints=[
+ {n:1,title:'过桥',zone:'D',x:-332,y:-220,desc:'古桥打卡，认识溪桥鲜与吴越农桑文化。'},
+ {n:2,title:'闻香',zone:'B',x:-329,y:-214,desc:'辨识香草与作物气味，打开感官体验。'},
+ {n:3,title:'摸土',zone:'B',x:-254,y:-139,desc:'观察土壤质地，认识作物生长环境。'},
+ {n:4,title:'种菜',zone:'B',x:-182,y:33,desc:'播种、插牌，体验认养与农事劳动。'},
+ {n:5,title:'看窗',zone:'A2',x:254,y:136,desc:'观察设施农业；夏季A1观察窗关闭时转至A2温室。'},
+ {n:6,title:'收菜',zone:'A3',x:-74,y:159,desc:'采摘、称重与包装；具体开放地块以现场安排为准。'},
+ {n:7,title:'带走',zone:'C',x:273,y:284,desc:'品牌零售、CSA自提、扫码溯源与集章离园。'}
+];;
+const studyGeoJSON={type:'FeatureCollection',features:studyPoints.map(p=>({
+ type:'Feature',properties:{n:p.n,title:p.title,zone:p.zone,desc:p.desc},
+ geometry:{type:'Point',coordinates:xy(p.x,p.y)}
+}))};
+
+function addPlanningLayers(){
+ if(!map.getSource('plan-zones')){
+  map.addSource('plan-zones',{type:'geojson',data:zoneGeoJSON});
+  map.addSource('plan-boundary',{type:'geojson',data:boundaryGeoJSON});
+  map.addSource('people-route',{type:'geojson',data:peopleGeoJSON});
+  map.addSource('goods-route',{type:'geojson',data:goodsGeoJSON});
+  map.addSource('study-points',{type:'geojson',data:studyGeoJSON});
+ }
+ const add=(id,layer)=>{if(!map.getLayer(id))map.addLayer(layer);};
+ add('plan-zone-fill',{id:'plan-zone-fill',type:'fill',source:'plan-zones',paint:{
+  'fill-color':['get','color'],'fill-opacity':0.48
+ }});
+ add('plan-zone-outline',{id:'plan-zone-outline',type:'line',source:'plan-zones',paint:{
+  'line-color':'#fffdf5','line-width':2.2
+ }});
+ add('plan-zone-label',{id:'plan-zone-label',type:'symbol',source:'plan-zones',layout:{
+  'text-field':['concat',['get','id'],' · ',['get','area']],
+  'text-size':12,'text-font':['Noto Sans Bold'],
+  'text-allow-overlap':true,'text-ignore-placement':true
+ },paint:{'text-color':'#203d2c','text-halo-color':'#fffdf0','text-halo-width':1.6}});
+ add('plan-boundary-line',{id:'plan-boundary-line',type:'line',source:'plan-boundary',paint:{
+  'line-color':'#d92f28','line-width':3.5,'line-dasharray':[2,1]
+ }});
+ add('people-route-line',{id:'people-route-line',type:'line',source:'people-route',layout:{'line-cap':'round','line-join':'round'},paint:{
+  'line-color':'#e18b2f','line-width':4,'line-dasharray':[1.5,1]
+ }});
+ add('goods-route-line',{id:'goods-route-line',type:'line',source:'goods-route',layout:{'line-cap':'round','line-join':'round'},paint:{
+  'line-color':'#2879a4','line-width':4,'line-dasharray':[2,1]
+ }});
+ add('study-point-circles',{id:'study-point-circles',type:'circle',source:'study-points',paint:{
+  'circle-radius':8,'circle-color':'#d17e32','circle-stroke-color':'#fff','circle-stroke-width':2.5
+ }});
+ add('study-point-labels',{id:'study-point-labels',type:'symbol',source:'study-points',layout:{
+  'text-field':['concat',['to-string',['get','n']],' ',['get','title']],
+  'text-size':11,'text-offset':[0,1.5],'text-anchor':'top','text-allow-overlap':true,'text-font':['Noto Sans Bold']
+ },paint:{'text-color':'#244532','text-halo-color':'#fff','text-halo-width':1.5}});
+ if(!map.__planInteractions){
+  map.on('click','plan-zone-fill',(e)=>{
+   if(pickMode)return;
+   const f=e.features&&e.features[0]; if(f&&f.properties&&f.properties.id)chooseZone(f.properties.id,'map');
+  });
+  map.on('click','study-point-circles',(e)=>{
+   if(pickMode)return;
+   const f=e.features&&e.features[0]; if(f&&f.properties&&f.properties.n)chooseStudy(Number(f.properties.n));
+  });
+  map.on('mouseenter','plan-zone-fill',()=>map.getCanvas().style.cursor='pointer');
+  map.on('mouseleave','plan-zone-fill',()=>map.getCanvas().style.cursor='');
+  map.on('mouseenter','study-point-circles',()=>map.getCanvas().style.cursor='pointer');
+  map.on('mouseleave','study-point-circles',()=>map.getCanvas().style.cursor='');
+  map.__planInteractions=true;
+ }
+ // Keep thematic overlays above basemap; use visibility for layer toggles.
+ setOverlayVisibility();
+}
+function setOverlayVisibility(){
+ if(typeof layerState==='undefined'||!map.getLayer('plan-zone-fill'))return;
+ const vis=(on)=>on?'visible':'none';
+ ['plan-zone-fill','plan-zone-outline','plan-zone-label','plan-boundary-line'].forEach(id=>map.setLayoutProperty(id,'visibility',vis(layerState.zones)));
+ map.setLayoutProperty('people-route-line','visibility',vis(layerState.people));
+ map.setLayoutProperty('goods-route-line','visibility',vis(layerState.goods));
+ ['study-point-circles','study-point-labels'].forEach(id=>map.setLayoutProperty(id,'visibility',vis(layerState.study)));
+}
+function highlightZoneOnMap(id){
+ if(!map.getLayer('plan-zone-fill'))return;
+ map.setPaintProperty('plan-zone-fill','fill-opacity',['case',['==',['get','id'],id],0.78,0.38]);
+ map.setPaintProperty('plan-zone-outline','line-width',['case',['==',['get','id'],id],4,1.8]);
+ const z=zones.find(x=>x.id===id);
+ if(z){
+  const centerMap={E1:[119.673970,30.238717],A1:[119.673970,30.238717],A2:[119.673970,30.238717],B:[119.673970,30.238717],A3:[119.673970,30.238717],C:[119.673970,30.238717],E2:[119.673970,30.238717]};
+  map.flyTo({center:centerMap[id]||initialCenter,zoom:16.9,duration:650});
+ }
+}
+function highlightStudyOnMap(n){
+ if(!map.getLayer('study-point-circles'))return;
+ map.setPaintProperty('study-point-circles','circle-radius',['case',['==',['get','n'],Number(n)],12,7]);
+ const p=studyPoints.find(x=>x.n===Number(n)); if(p)map.flyTo({center:xy(p.x,p.y),zoom:17,duration:600});
+}
+function showRouteFocus(which){
+ if(which==='people'){layerState.people=true;map.flyTo({center:xy(-260,-20),zoom:16.6,duration:650});}
+ if(which==='goods'){layerState.goods=true;map.flyTo({center:xy(60,150),zoom:16.6,duration:650});}
+ setOverlayVisibility();
+}
+
+let activeTab='intro',selectedZone='A1',selectedPeople='P1',selectedGoods='G1',selectedStudy=1,summerMode=false;
+const layerState={zones:true,people:true,goods:false,study:true};
+const layerContent=document.getElementById('layerContent');
+const contentEl=document.getElementById('content');
+
+function setTab(tab){
+ activeTab=tab;
+ document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+ const autoLayer={intro:'zones',zones:'zones',people:'people',goods:'goods',study:'study'}[tab];
+ if(autoLayer) layerState[autoLayer]=true;
+ syncLayerChecks();
+ if(tab==='people')showRouteFocus('people'); else if(tab==='goods')showRouteFocus('goods'); else if(tab==='study'){layerState.study=true;setOverlayVisibility();highlightStudyOnMap(selectedStudy);} else if(tab==='zones')highlightZoneOnMap(selectedZone);
+ renderLayers();
+ renderRight();
+}
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.tab)));
+document.querySelectorAll('[data-layer]').forEach(box=>box.addEventListener('change',()=>{
+ layerState[box.dataset.layer]=box.checked;
+ renderLayers();setOverlayVisibility();
+}));
+function syncLayerChecks(){
+ document.querySelectorAll('[data-layer]').forEach(x=>x.checked=!!layerState[x.dataset.layer]);
+}
+function chooseZone(id,from='map'){
+ const z=zones.find(x=>x.id===id); if(!z)return;
+ selectedZone=id;
+ if(activeTab!=='zones')setTab('zones');
+ else {renderRight();renderLayers();}
+ highlightZoneOnMap(id);
+}
+function choosePeople(id){
+ selectedPeople=id;
+ if(activeTab!=='people')setTab('people');
+ else {renderRight();renderLayers();}
+ showRouteFocus('people');
+}
+function chooseGoods(id){
+ selectedGoods=id;
+ if(activeTab!=='goods')setTab('goods');
+ else {renderRight();renderLayers();}
+ showRouteFocus('goods');
+}
+function chooseStudy(n){
+ selectedStudy=Number(n);
+ if(activeTab!=='study')setTab('study');
+ else {renderRight();renderLayers();}
+ layerState.study=true;setOverlayVisibility();highlightStudyOnMap(n);
+}
+function renderLayers(){
+ const parts=[];
+ if(layerState.zones){
+  parts.push(`<section class="layer-section"><h4>项目分区 · 点击区块查看右侧介绍</h4>
+   <div class="plan-grid">
+    <button class="plan-cell wide ${selectedZone==='E1'?'active':''}" data-map-zone="E1"><strong>E1 · 22亩水稻油菜轮作</strong><small>北侧</small></button>
+    <button class="plan-cell d ${selectedZone==='D'?'active':''}" data-map-zone="D"><strong>D</strong><small>古桥文化廊道</small></button>
+    <button class="plan-cell b ${selectedZone==='B'?'active':''}" data-map-zone="B"><strong>B · 12亩</strong><small>共享体验</small></button>
+    <button class="plan-cell a1 ${selectedZone==='A1'?'active':''}" data-map-zone="A1"><strong>A1 · 82亩</strong><small>数字设施蔬菜</small></button>
+    <button class="plan-cell a2 ${selectedZone==='A2'?'active':''}" data-map-zone="A2"><strong>A2 · 24亩</strong><small>玻璃温室</small></button>
+    <button class="plan-cell a3 ${selectedZone==='A3'?'active':''}" data-map-zone="A3"><strong>A3 · 72亩</strong><small>订单规模种植</small></button>
+    <button class="plan-cell c ${selectedZone==='C'?'active':''}" data-map-zone="C"><strong>C · 8亩</strong><small>服务区 / 东侧</small></button>
+    <button class="plan-cell e2 wide ${selectedZone==='E2'?'active':''}" data-map-zone="E2"><strong>E2 · 约4亩现状水塘</strong><small>南缘，位置保留</small></button>
+   </div>
+   <div class="plan-caption">北侧轮作区在A1/A2以北；A1与A2并列；B在西侧；A3在南侧；C在A3东侧；水塘在南缘。此为方位示意，非比例图。</div></section>`);
+ }
+ if(layerState.people){
+  parts.push(`<section class="layer-section"><h4>人下乡 · 游客体验动线</h4><div class="flow-list">${peopleSteps.map((s,i)=>`<button class="flow-item ${selectedPeople===s.id?'active':''}" data-map-people="${s.id}"><span class="flow-n">${i+1}</span><span><b>${s.title}</b> · ${s.desc}</span></button>${i<peopleSteps.length-1?'<div class="flow-arrow">↓</div>':''}`).join('')}</div></section>`);
+ }
+ if(layerState.goods){
+  parts.push(`<section class="layer-section"><h4>菜进城 · 农产品流通链</h4><div class="flow-list">${goodsSteps.map((s,i)=>`<button class="flow-item ${selectedGoods===s.id?'active':''}" data-map-goods="${s.id}"><span class="flow-n">${i+1}</span><span><b>${s.title}</b> · ${s.desc}</span></button>${i<goodsSteps.length-1?'<div class="flow-arrow">↓</div>':''}`).join('')}</div></section>`);
+ }
+ if(layerState.study){
+  parts.push(`<section class="layer-section"><h4>过桥七事 · 点击节点同步查看活动</h4><div class="study-grid">${studies.map(s=>`<button class="study-item ${selectedStudy===s.n?'active':''}" data-map-study="${s.n}"><strong>${String(s.n).padStart(2,'0')} ${s.title}</strong><small>${s.zone==='D'?'D区':s.zone==='B'?'B区':s.zone==='C'?'C区':'A区'}</small></button>`).join('')}</div></section>`);
+ }
+ layerContent.innerHTML=parts.length?parts.join(''):'<div class="layer-empty">当前没有开启专题图层。请勾选上方图层，或点击右侧专题入口。</div>';
+ layerContent.querySelectorAll('[data-map-zone]').forEach(b=>b.onclick=()=>chooseZone(b.dataset.mapZone,'map'));
+ layerContent.querySelectorAll('[data-map-people]').forEach(b=>b.onclick=()=>choosePeople(b.dataset.mapPeople));
+ layerContent.querySelectorAll('[data-map-goods]').forEach(b=>b.onclick=()=>chooseGoods(b.dataset.mapGoods));
+ layerContent.querySelectorAll('[data-map-study]').forEach(b=>b.onclick=()=>chooseStudy(b.dataset.mapStudy));
+}
+function detailCard(title,meta,desc,extra=''){
+ return `<div class="detail"><b>${title}</b><span>${meta}<br>${desc}${extra}</span></div>`;
+}
+function renderRight(){
+ if(activeTab==='intro'){
+  const selected=zones.find(z=>z.id===selectedZone)||zones[0];
+  contentEl.innerHTML=`<div class="eyebrow">WELCOME TO XIQIAO</div><h2>一座桥，连接城乡</h2><div class="area">约220亩数字蔬菜产业基地</div>
+   <p>在真实卫星影像与道路底图上理解新溪桥村项目区，并通过专题图层探索五区空间、游客体验和农产品流通。</p>
+   <div class="detail-list">
+    ${detailCard('菜进城','A区生产 → C区预冷分拣 → 批发 / CSA / 品牌零售','面向临安主城区居民与企业客户。')}
+    ${detailCard('人下乡','古桥入口 → D区文化廊道 → B区体验 → A区开放体验 → C区服务','游客体验动线与生产货运动线分开组织。')}
+    ${detailCard('品牌主张','鲜 · 信 · 桥','新鲜供应、品质溯源、吴越农桑的当代连接。')}
+   </div>
+   <div class="notice">地图中的红色边界、分区色块、游客路线、物流流线和七事节点均直接叠加在底图上；点击地图对象或右侧栏目即可联动。V2.2 已按你最新提供的红线图重绘范围。</div>`;
+ } else if(activeTab==='zones'){
+  const z=zones.find(x=>x.id===selectedZone)||zones[0];
+  contentEl.innerHTML=`<div class="eyebrow">FIVE ZONES</div><h2>五区空间导览</h2><p>点击分区，地图直接定位并高亮对应色块。A区可展开查看A1、A2、A3；E区可查看轮作区和现状水塘。</p>
+   <div class="zone-list">${zoneGroups.map(g=>`<button class="zone-btn ${g.children.includes(selectedZone)?'active':''}" data-right-zonegroup="${g.id}"><b>${g.id} · ${g.name}</b><small>${g.area}</small></button>`).join('')}</div>
+   <div class="route-steps">${zoneGroups.find(g=>g.id===z.group)?.children.map(id=>{const x=zones.find(y=>y.id===id);return `<button class="step-btn ${selectedZone===id?'active':''}" data-right-zone="${id}"><span class="num">${id}</span><span><b>${x.name}</b><small>${x.area}｜${x.pos}</small></span></button>`}).join('')||''}</div>
+   <div class="detail-list">${detailCard(z.name,z.area+' · '+z.pos,z.desc,`<br><b>功能定位：</b>${z.role}`)}</div>
+   <div class="notice">五大分区：A智慧生产、B共享体验、C产销服务、D文化廊道、E生态景观。各分区面积按当前规划口径标注。</div>`;
+  contentEl.querySelectorAll('[data-right-zonegroup]').forEach(b=>b.onclick=()=>{const g=zoneGroups.find(x=>x.id===b.dataset.rightZonegroup);chooseZone(g.children[0])});
+  contentEl.querySelectorAll('[data-right-zone]').forEach(b=>b.onclick=()=>chooseZone(b.dataset.rightZone));
+ } else if(activeTab==='people'){
+  const s=peopleSteps.find(x=>x.id===selectedPeople)||peopleSteps[0];
+  contentEl.innerHTML=`<div class="eyebrow">VISITOR FLOW</div><h2>人下乡</h2><p>城市居民从古桥进入菜园，沿D区文化廊道到达B区共享体验空间，再根据开放安排进入生产展示和服务场景。</p>
+   <div class="route-steps">${peopleSteps.map((x,i)=>`<button class="step-btn ${selectedPeople===x.id?'active':''}" data-right-people="${x.id}"><span class="num">${i+1}</span><span><b>${x.title}</b><small>${x.desc}</small></span></button>`).join('')}</div>
+   <div class="detail-list">${detailCard(s.title,'对应区域：'+(zones.find(z=>z.id===s.zone)?.name||s.zone),s.desc)}</div>
+   <div class="notice">路线顺序已按策划方案表达；实际路段位置、道路距离和通行条件待坐标校准。</div>`;
+  contentEl.querySelectorAll('[data-right-people]').forEach(b=>b.onclick=()=>choosePeople(b.dataset.rightPeople));
+ } else if(activeTab==='goods'){
+  const s=goodsSteps.find(x=>x.id===selectedGoods)||goodsSteps[0];
+  contentEl.innerHTML=`<div class="eyebrow">PRODUCT FLOW</div><h2>菜进城</h2><p>从基地生产到城市消费，形成采收、处理、集散与销售链条。此图层与游客体验路线分开表达。</p>
+   <div class="route-steps">${goodsSteps.map((x,i)=>`<button class="step-btn ${selectedGoods===x.id?'active':''}" data-right-goods="${x.id}"><span class="num">${i+1}</span><span><b>${x.title}</b><small>${x.desc}</small></span></button>`).join('')}</div>
+   <div class="detail-list">${detailCard(s.title,'流通环节',s.desc)}</div>
+   <div class="notice">蓝色为农产品流通示意，橙色为游客体验示意，两条流线分层显示；实际道路连接待后续校准。</div>`;
+  contentEl.querySelectorAll('[data-right-goods]').forEach(b=>b.onclick=()=>chooseGoods(b.dataset.rightGoods));
+ } else if(activeTab==='study'){
+  const s=studies.find(x=>x.n===selectedStudy)||studies[0];
+  contentEl.innerHTML=`<div class="eyebrow">BRIDGE EXPERIENCE</div><h2>过桥七事</h2><p>半天体验约3—4小时，单向组织，不回头、不穿越生产区。点击任一任务，地图直接定位并高亮对应研学节点。</p>
+   <div class="route-steps">${studies.map(x=>`<button class="step-btn ${selectedStudy===x.n?'active':''}" data-right-study="${x.n}"><span class="num">${x.n}</span><span><b>${x.title}</b><small>${x.desc}</small></span></button>`).join('')}</div>
+   <div class="detail-list">${detailCard(s.title,'体验区域：'+(zones.find(z=>z.id===s.zone)?.name||'A/B区采摘体验点'),s.desc)}</div>
+   <div class="notice">夏季方案：A1观察窗关闭，转至A2温室；B区课程安排在清晨或傍晚；C区广场活动转入室内。</div>`;
+  contentEl.querySelectorAll('[data-right-study]').forEach(b=>b.onclick=()=>chooseStudy(b.dataset.rightStudy));
+ }
+}
+document.getElementById('collapseLayers').onclick=()=>{
+ document.getElementById('mapOverlays').style.display='none';
+ document.getElementById('reopenLayers').style.display='block';
+};
+document.querySelector('#reopenLayers button').onclick=()=>{
+ document.getElementById('mapOverlays').style.display='flex';
+ document.getElementById('reopenLayers').style.display='none';
+};
+
+function init(){
+ syncLayerChecks();
+ renderLayers();
+ renderRight();
+}
+init();
+</script>
+</body>
+</html>
